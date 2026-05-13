@@ -1,0 +1,35 @@
+======启动流程======
+1.启动模块运行窗（初始终端中运行）：python3 car_launch.py
+
+
+2.启动视觉分类模块：python3 /apollo_workspace/ZL2/perception_cls.py --weights /apollo_workspace/ZL2/weights/yolov5s-cls-v2.pt --source 2 
+
+
+3.启动视觉检测模块：python3 /apollo_workspace/ZL2/perception_det.py --weights /apollo_workspace/ZL2/weights/yolov5s-det-v1.pt --source 4 --device cpu
+
+
+4.启动雷达模块：/opt/apollo/neo/bin/radar /dev/ttyUSB1
+
+
+5.启动主控模块：python3 /apollo_workspace/ZL2/control.py --port /dev/ttyUSB0
+
+
+6.启动决策模块：python3 /apollo_workspace/ZL2/planning.py --port /dev/ttyUSB0
+
+======源码编译======
+buildtool build -p ZL2
+
+======数据采集======
+python3 /apollo_workspace/ZL2/collect.py --save_path /apollo_workspace/ZL2/data/camera --camera 2
+
+======数据制作======
+VOC格式转YOLO格式： python3 /apollo_workspace/ZL2/tool/voc_to_yolo.py --voc_root /apollo_workspace/ZL2/dataset/DetDataVoc --output_dir /apollo_workspace/ZL2/dataset/DetDataYolo --classes "person,red_light,green_light,sidewalk"
+
+划分赛道分类数据集：python3 /apollo_workspace/ZL2/tool/split_cls.py --source_dir /apollo_workspace/ZL2/dataset/ClsData --output_dir /apollo_workspace/ZL2/dataset/ClsDataSet --train_ratio 0.7 --val_ratio 0.3                
+
+划分目标检测数据集：python3 /apollo_workspace/ZL2/tool/split_det.py --source_dir /apollo_workspace/ZL2/dataset/DetData --output_dir /apollo_workspace/ZL2/dataset/DetDataSet --train_ratio 0.7 --val_ratio 0.3
+
+======模型训练======
+训练赛道分类模型：python3 /apollo_workspace/ZL2/classify/train.py --model /apollo_workspace/ZL2/weights/yolov5s-cls.pt --data /apollo_workspace/ZL2/dataset/ClsDataSet --epochs 5 --img 224
+
+训练目标检测模型：python3 /apollo_workspace/ZL2/train.py --weights /apollo_workspace/ZL2/weights/yolov5s.pt --data /apollo_workspace/ZL2/data/custom.yaml --epochs 50 --img 640

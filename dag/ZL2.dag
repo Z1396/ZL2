@@ -1,0 +1,14 @@
+module_config {                                # 这是一个 CyberRT 模块配置
+  module_library : "ZL2/libZL2_component.so"   # 【核心】要加载的功能库（编译好的代码）
+  components {                                 # 组件 = 真正干活的功能单元
+    class_name : "ZL2"                         # 组件类名：ZL2
+    config {
+      name : "ZL2"                             # 组件名字
+      config_file_path: "ZL2/conf/ZL2.pb.txt"  # 配置文件路径
+      flag_file_path: "ZL2/conf/ZL2.conf"      # 标志/参数文件
+      readers {                                # 订阅者（收消息）
+        channel: "/apollo/ZL2"                 # 消息通道：/apollo/ZL2
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+// 声明使用 Protobuf 版本：必须写在第一行，这里用的是 proto2（Apollo 主流版本）
+// proto2 是第二代协议，稳定、兼容 Apollo 自动驾驶系统
+syntax = "proto2";
+
+// 定义【包名】：防止消息名冲突（类似 Python 的 文件夹/包 概念）
+// apollo.ZL2.proto = 阿波罗 -> ZL2项目 -> 协议文件
+// 作用：避免和其他模块的 Car、Perception 重名
+package apollo.ZL2.proto;
+
+// ==============================================
+// 【演示用消息】仅占位，实际项目中可删除
+// message：定义一个消息体（相当于 Python 的 class / 结构体）
+// ZL2Msg：消息名称
+message ZL2Msg {
+  // 空消息：仅作为通道消息类型占位，无实际功能
+}
+
+// ==============================================
+// 【配置消息】存储小车的配置信息
+message ZL2Config {
+  // optional：可选字段（可发可不发）
+  // string：数据类型 = 字符串
+  // name：字段名（小车名称/设备名）
+  // = 1：字段编号（必须唯一，用于序列化，不能乱改！）
+  optional string name = 1;
+};
+
+// ==============================================
+// 【核心：小车状态消息】
+// 作用：小车把自己的运行状态发给视觉/感知/决策模块
+// 包含：驾驶模式、档位、车速、转向、刹车、信号等
+message Car{
+  // 1 号字段：驾驶模式（自动驾驶/手动/遥控）
+  // uint64 = 无符号64位整数（0,1,2...）
+  optional uint64 pattern = 1;
+
+  // 2 号字段：档位（P/R/N/D）
+  optional uint64 gear = 2;
+
+  // 3 号字段：实际车速（小车当前真实速度）
+  optional uint64 real_speed = 3;
+
+  // 4 号字段：控制车速（系统期望小车跑的速度）
+  optional uint64 ctrl_speed = 4;
+
+  // 5 号字段：转向角（方向盘角度）
+  optional uint64 angle = 5;
+
+  // 6 号字段：刹车信号（0=松开 1=刹车）
+  optional uint64 brake = 6;
+
+  // 7 号字段：泊车信号（0=未泊车 1=泊车）
+  optional uint64 park = 7;
+
+  // 8 号字段：自定义信号（用户扩展用）
+  optional uint64 custom_signals = 8;
+};
+
+// ==============================================
+// 【核心：感知结果消息】
+// 作用：视觉模块 发给 小车控制模块
+// 包含：雷达、分类结果、目标检测结果
+message Perception{
+  // 1 号字段：雷达感知数据
+  optional uint64 radar = 1;
+
+  // 2~4 号字段：图像分类结果（图片分类：红灯/绿灯/人/车）
+  optional string cls_1 = 2;
+  optional string cls_2 = 3;
+  optional string cls_3 = 4;
+
+  // 5~7 号字段：目标检测结果（YOLO识别：人、车、停止线、障碍物）
+  optional string det_1 = 5;
+  optional string det_2 = 6;
+  optional string det_3 = 7;
+};

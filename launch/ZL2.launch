@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>ZL2</name>
+    <dag_conf>ZL2/dag/ZL2.dag</dag_conf>
+    <process_name>ZL2</process_name>
+  </module>
+</cyber>
