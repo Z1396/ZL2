@@ -62,9 +62,6 @@ def train(opt, device):
     # Save run settings
     yaml_save(save_dir / 'opt.yaml', vars(opt))
 
-    # Initialize training history for CSV
-    train_history = []  # 用于保存训练历史
-
     # Logger
     logger = GenericLogger(opt=opt, console_logger=LOGGER) if RANK in {-1, 0} else None
 
@@ -215,9 +212,6 @@ def train(opt, device):
             if fitness > best_fitness:
                 best_fitness = fitness
 
-            # Save to training history for CSV
-            train_history.append([epoch + 1, tloss, vloss, top1, top5, optimizer.param_groups[0]['lr']])
-
             # Log
             metrics = {
                 "train/loss": tloss,
@@ -255,51 +249,6 @@ def train(opt, device):
                     f"\nExport:          python export.py --weights {best} --include onnx"
                     f"\nPyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', '{best}')"
                     f"\nVisualize:       https://netron.app\n")
-
-        # Save training results to CSV
-        import csv
-        import pandas as pd
-        import matplotlib.pyplot as plt
-
-        csv_path = save_dir / 'results.csv'
-        with open(csv_path, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(['epoch', 'train/loss', f'{val}/loss', 'metrics/accuracy_top1', 'metrics/accuracy_top5', 'lr/0'])
-            writer.writerows(train_history)
-        LOGGER.info(f"Results saved to {csv_path}")
-
-        # Plot training curves (like detection training)
-        try:
-            df = pd.read_csv(csv_path)
-            fig, axes = plt.subplots(2, 2, figsize=(10, 10))
-            axes = axes.flatten()
-
-            # Plot losses
-            axes[0].plot(df['epoch'], df['train/loss'], label='train/loss')
-            axes[0].plot(df['epoch'], df[f'{val}/loss'], label=f'{val}/loss')
-            axes[0].set_title('Loss')
-            axes[0].legend()
-            axes[0].grid(True)
-
-            # Plot accuracies
-            axes[1].plot(df['epoch'], df['metrics/accuracy_top1'], label='Top1-Acc')
-            axes[1].plot(df['epoch'], df['metrics/accuracy_top5'], label='Top5-Acc')
-            axes[1].set_title('Accuracy')
-            axes[1].legend()
-            axes[1].grid(True)
-
-            # Plot learning rate
-            axes[2].plot(df['epoch'], df['lr/0'], label='Learning Rate')
-            axes[2].set_title('Learning Rate')
-            axes[2].legend()
-            axes[2].grid(True)
-
-            fig.tight_layout()
-            fig.savefig(save_dir / 'results.png', dpi=200)
-            plt.close(fig)
-            LOGGER.info(f"Training curves saved to {save_dir / 'results.png'}")
-        except Exception as e:
-            LOGGER.warning(f"Failed to plot training curves: {e}")
 
         # Plot examples
         images, labels = (x[:25] for x in next(iter(testloader)))  # first 25 images and labels
